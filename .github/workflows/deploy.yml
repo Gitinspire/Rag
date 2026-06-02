@@ -1,8 +1,7 @@
 name: Build and Deploy to EKS
 
 on:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1                   # Replace with your AWS region
