@@ -1,4 +1,4 @@
-# 🤖 RAG Document Q&A — InnovLabs.AI Knowledge Base Chatbot
+# 🤖 RAG Document Q&A — Chatbot
 
 A **Proof of Concept** that demonstrates how RAG (Retrieval-Augmented Generation) works by building an intelligent chatbot that answers questions from InnovLabs.AI's internal documents — an AI-Powered Scientific Discovery Platform for drug discovery, biomarker research, and laboratory operations.
 
@@ -8,7 +8,7 @@ A **Proof of Concept** that demonstrates how RAG (Retrieval-Augmented Generation
 
 **RAG = Retrieval-Augmented Generation**
 
-Imagine asking ChatGPT: *"What products does InnovLabs.AI offer?"*
+Imagine asking ChatGPT: *"what is the protein structure of 1A2C?"*
 ChatGPT doesn't know — it was never trained on your company's data!
 
 ### You have two options:
