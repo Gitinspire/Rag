@@ -492,10 +492,24 @@ def ask(chain, retriever, question: str, user_id: str = "public") -> dict:
     elif tool_results and filtered_chunks:
         provenance = "Hybrid"
     elif filtered_chunks:
-        provenance = "Vector DB"
+        # Verify if the question keywords actually overlap with the retrieved chunks.
+        # If the user asks a general science query (e.g. "what is insulin") and we only
+        # retrieve company docs, the query subject won't overlap with the documents.
+        import re
+        stop_words = {"what", "how", "why", "who", "where", "when", "which", "show", "tell", "explain", "about", "does", "mean", "stands", "stand", "the", "a", "an", "is", "are", "was", "were", "of", "in", "to", "for", "and", "or"}
+        question_words = [w.lower() for w in re.findall(r'\b[a-zA-Z]{3,}\b', question) if w.lower() not in stop_words]
+        
+        chunks_text = " ".join([c.page_content.lower() for c in filtered_chunks])
+        has_overlap = any(word in chunks_text for word in question_words) if question_words else True
+        
+        if has_overlap:
+            provenance = "Vector DB"
+        else:
+            provenance = "LLM General Knowledge"
+            final_sources = []
     else:
         # LLM answered but no context was provided — it used its own training knowledge
-        provenance = "LLM General Knowledge (Not Grounded)"
+        provenance = "LLM General Knowledge"
 
     return {
         "answer": answer,
