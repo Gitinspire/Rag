@@ -1,0 +1,34 @@
+# Sensitive Info
+.env
+k8s/secret.yaml
+
+# Local Databases & Backups
+chroma_db/
+backups/
+
+# Deployment & Docker (Ignored for Vercel)
+k8s/
+Dockerfile
+docker-compose.yml
+
+# Local Test & Utility Scripts
+inspect_chroma.py
+test_chroma_filter.py
+test_multi_tenant.py
+create_mock_eln.py
+fix_legacy_tags.py
+50_ids.py
+image_indexer.py
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db

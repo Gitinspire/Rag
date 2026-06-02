@@ -1,0 +1,41 @@
+SOURCE: https://innovlabs.ai (home page use case highlights)
+CATEGORY: Use Cases & Domain Applications
+
+1. CLINICAL GENOMICS
+   - Sophia Genetics-style AI-based genome analyses at scale (2M+ analyses)
+   - Application: Population-scale genomic studies, clinical decision support
+
+2. GENOMICS AI
+   - Protein structure modeling and prediction using AI tools
+   - Application: Target identification, lead compound optimization
+
+3. DIAGNOSTICS
+   - Smart PCR powered by ML revolutionizes DNA analysis
+   - Application: Next-generation diagnostics, precision medicine
+
+4. CANCER RESEARCH
+   - AI-powered digital biomarker discovery for Non-Invasive Diagnostics
+   - Application: Early cancer detection, liquid biopsy analysis
+
+5. SYNTHETIC BIOLOGY
+   - Generative AI creates synthetic DNA for precise gene control
+   - Application: Synthetic gene circuits, gene therapy design
+
+6. EPIGENETICS
+   - Data Management & Analysis made easy using AI and ML tools for
+     Multi-Cohort Clinical Research
+   - Application: Multi-omics integration, epigenome-wide association studies
+
+HOW IT WORKS (4-step workflow):
+Step 1 — Upload Data:
+  Ingest omics, chemistry, clinical, or instrument data from multiple sources.
+
+Step 2 — AI Analysis:
+  Apply advanced models including GNNs (Graph Neural Networks), transformers,
+  and domain-specific AI.
+
+Step 3 — Predict & Rank:
+  Identify and prioritize hits, variants, biomarkers, and anomalies.
+
+Step 4 — Visualize & Report:
+  Generate publication-ready visualizations and regulatory-grade reports.

@@ -1,0 +1,44 @@
+SOURCE: https://innovlabs.ai/about-us
+CATEGORY: About Us & Team
+
+COMPANY DESCRIPTION:
+InnovLabs.ai is dedicated to redefining the future of the pharmaceutical and life
+sciences industries through the intelligent application of Artificial Intelligence
+and Machine Learning. The team combines expertise in data science, biotechnology,
+pharmaceutical and material sciences research to develop solutions that accelerate
+drug discovery, streamline development pipelines, and improve patient outcomes.
+
+Guided by a commitment to scientific rigor and technological innovation, InnovLabs.ai
+focuses on bridging the gap between advanced computation and real-world healthcare
+challenges. At InnovLabs.ai, the convergence of AI and ML is understood not merely
+as a toolkit, but as a catalyst for sustained transformation in global health systems.
+
+TEAM COMPOSITION (Multidisciplinary):
+
+1. Scientific and Biological Domain Experts
+   - Bioinformatics Specialists: Experts in omics data analysis and biological systems
+     who bridge experimental biology with computational modeling.
+   - Biotechnology Researchers: Scientists experienced in biological data, drug
+     discovery, and systems biology — providing practical context for platform design
+     and implementation.
+   - Molecular Modeling Experts: Scientists in protein structure prediction and
+     molecular interaction modeling to accelerate target identification and lead
+     optimization.
+
+2. AI/ML & Data Science Team
+   - AI/ML Engineers: Professionals skilled in machine learning, deep learning, and
+     bioinformatics algorithms for big-data analysis including biological and chemical
+     data.
+   - Data Scientists: Experts in extracting patterns from complex datasets, optimizing
+     discovery workflows, and enabling data-driven precision medicine.
+   - NLP Engineers: Specialists in natural language processing who derive insights from
+     biomedical literature, research publications, and clinical documentation.
+
+3. Software Engineering Team
+   - Full-Stack Engineers: Developers focused on building intuitive, scalable, and
+     secure web platforms for scientific and clinical users.
+   - Data Analysts: Professionals who interpret experimental and real-world data,
+     transforming results into actionable insights for R&D teams.
+   - Cloud Engineers: Infrastructure experts with experience across AWS, Azure, and
+     Google Cloud, enabling scalable storage, high-performance computation, and robust
+     model deployment.

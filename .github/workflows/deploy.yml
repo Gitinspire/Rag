@@ -1,0 +1,67 @@
+name: Build and Deploy to EKS
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: us-east-1                   # Replace with your AWS region
+  ECR_REPOSITORY: innovlabs-dev           # Replace with your ECR repository name
+  EKS_CLUSTER: innovlabs-dev              # Replace with your EKS cluster name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, Tag, and Push Image to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Update Kubeconfig
+      run: |
+        aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+
+    - name: Deploy to EKS
+      run: |
+        # Apply Namespace first
+        kubectl apply -f k8s/namespace.yaml
+        
+        # Apply VPC and other configs
+        kubectl apply -f k8s/pvc.yaml
+        kubectl apply -f k8s/configmap.yaml
+        kubectl apply -f k8s/secret.yaml
+        
+        # Deploy Application
+        # Use sed to replace the image placeholder in deployment.yaml
+        IMAGE_URL=$(aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text):${{ github.sha }}
+        sed -i "s|<YOUR_ECR_ACCOUNT>.*innovlabs-rag:latest|$IMAGE_URL|g" k8s/deployment.yaml
+        
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml
+        kubectl apply -f k8s/ingress.yaml
+        #kubectl apply -f k8s/hpa.yaml
+
+    - name: Verify Deployment
+      run: |
+        kubectl rollout status deployment/rag-api -n rag-app
