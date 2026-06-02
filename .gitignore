@@ -5,6 +5,7 @@ k8s/secret.yaml
 # Local Databases & Backups
 chroma_db/
 backups/
+knowledge_base/
 
 # Deployment & Docker (Ignored for Vercel)
 k8s/
