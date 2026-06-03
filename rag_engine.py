@@ -206,7 +206,7 @@ Your goal is to provide high-fidelity reports. You have access to:
    - Asked about "full report" or "all"       → include: all sections in clinical-grade layout
 2. If the query is about the internal platform internally, provide a detailed, factual response based on the CONTEXT.
 3. **Absolute Suppression**: DO NOT use "Not documented" or "N/A". For internal platform queries, if data is missing from context, omit it silently. For general scientific or biological queries (e.g. general questions about proteins, DNA, or general science that are not platform-specific), you may answer them using your own general knowledge.
-4. **NEVER write image URLs in your text response.** The UI automatically displays the protein image. Do not include any URL, link, or reference to an image file.
+4. **NEVER write image URLs in your text response.** The UI automatically displays the protein image. Do not include any URL, link, or reference to an image file. If the user asks for an image, diagram, structure, or visualization, you must confirm that the image/structure is being displayed in the panel (e.g., "I have retrieved the structure image for 2ACO, which is displayed in the panel.") and provide a brief description of the protein's title, classification, or resolution from the metadata so the text response is not empty.
 
 ---
 
@@ -231,6 +231,76 @@ ANSWER:""")
 # ==============================================================================
 # ANSWER + SOURCE RETRIEVAL
 # ==============================================================================
+
+def format_raw_tool_results(tool_results: list[str]) -> str:
+    """Format raw JSON tool results into beautiful markdown tables/lists."""
+    import json
+    formatted_parts = []
+    
+    for record in tool_results:
+        lines = record.split("\n", 1)
+        if len(lines) < 2:
+            formatted_parts.append(record)
+            continue
+            
+        header, json_part = lines[0], lines[1]
+        try:
+            data = json.loads(json_part)
+        except Exception:
+            formatted_parts.append(record)
+            continue
+            
+        md = []
+        md.append(f"### {header.strip(':')}")
+        
+        if "UNIPROT" in header.upper():
+            md.append(f"- **Accession**: {data.get('accession', 'N/A')}")
+            md.append(f"- **Name**: {data.get('full_name', 'N/A')}")
+            md.append(f"- **Gene**: {data.get('gene', 'N/A')}")
+            md.append(f"- **Organism**: {data.get('organism', 'N/A')}")
+            md.append(f"- **Sequence Length**: {data.get('sequence_length', 'N/A')} residues")
+            md.append(f"\n**Function**:\n{data.get('function', 'N/A')}")
+        else:
+            # PDB Record
+            md.append(f"- **PDB ID**: {data.get('pdb_id', 'N/A')}")
+            md.append(f"- **Title**: {data.get('title', 'N/A')}")
+            
+            res = data.get('resolution_angstrom')
+            if res: md.append(f"- **Resolution**: {res} Å")
+            
+            method = data.get('experimental_method')
+            if method: md.append(f"- **Method**: {method}")
+            
+            classification = data.get('classification')
+            if classification: md.append(f"- **Classification**: {classification}")
+            
+            organism = data.get('organism_common')
+            if organism: md.append(f"- **Organism**: {organism}")
+            
+            weight = data.get('macromolecule_weight_kda')
+            if weight: md.append(f"- **Weight**: {weight} kDa")
+            
+            bioactive = data.get('bioactive_components_summary', [])
+            if bioactive:
+                md.append("\n**Bioactive Components / Ligand Bindings**:")
+                for comp in bioactive:
+                    c_type = comp.get('type', 'Component')
+                    chains = ", ".join(comp.get('chains', []))
+                    md.append(f"  - **{comp.get('id')}** ({comp.get('name')}): {c_type} (Chains: {chains})")
+                    
+            citation = data.get('citation')
+            if citation and isinstance(citation, dict):
+                journal = citation.get('journal')
+                doi = citation.get('doi')
+                pubmed = citation.get('pubmed_id')
+                md.append("\n**Citation**:")
+                if journal: md.append(f"  - *{journal}*")
+                if doi: md.append(f"  - DOI: [{doi}](https://doi.org/{doi})")
+                if pubmed: md.append(f"  - PubMed ID: {pubmed}")
+                
+        formatted_parts.append("\n".join(md))
+        
+    return "I've retrieved the following scientific data for you:\n\n" + "\n\n---\n\n".join(formatted_parts)
 
 def ask(chain, retriever, question: str, user_id: str = "public") -> dict:
     import re
@@ -259,19 +329,8 @@ def ask(chain, retriever, question: str, user_id: str = "public") -> dict:
     
     if pdb_ids:
         print(f"PDB IDs detected: {pdb_ids}. Fetching live data...")
-        # Keywords that require live/precise data — skip Vector DB for these
-        detail_keywords = ["sequence", "residue", "atom", "chain", "ligand", "compound",
-                           "resolution", "structure", "method", "refine", "uniprot",
-                           "polymer", "mutation", "doi", "pubmed", "citation", "weight"]
-        needs_live_data = any(k in question.lower() for k in detail_keywords)
         for pdb_id in pdb_ids:
             pdb_id = pdb_id.upper()
-            if pdb_id in INDEXED_PDB_IDS and not needs_live_data:
-                print(f"PDB ID {pdb_id} is in local index. Skipping live fetch to prioritize Vector DB.")
-                continue
-            if pdb_id in INDEXED_PDB_IDS and needs_live_data:
-                print(f"PDB ID {pdb_id} is indexed BUT question needs live detail - fetching from RCSB API.")
-                
             try:
                 raw_res = protein_tools.get_rcsb_pdb_metadata(pdb_id)
                 # Truncate ONLY for LLM context (token limit) — extract image FIRST from full response
@@ -447,7 +506,7 @@ def ask(chain, retriever, question: str, user_id: str = "public") -> dict:
 
     # 4. Final Polish
     if not answer and tool_results:
-        answer = "I've retrieved the following scientific data for you:\n\n" + "\n".join(tool_results)
+        answer = format_raw_tool_results(tool_results)
 
     # 5. Source Attribution & Image logic
     # Fallback: only pull images from Vector DB docs if a protein was actually in the question
@@ -476,11 +535,15 @@ def ask(chain, retriever, question: str, user_id: str = "public") -> dict:
         final_sources = ["Internal Scientific Knowledge Base"]
 
     # 6. Final check for visual intent — clear image list if not requested
-    visual_keywords = ["structure", "diagram", "image", "picture", "show me", "visual", "draw", "render", "struture", "sturcture", "sitructure"]
+    visual_keywords = ["structure", "diagram", "image", "picture", "show me", "visual", "draw", "render", "struture", "sturcture", "sitructure", "strcture"]
     wants_visual = any(k in question.lower() for k in visual_keywords)
-    if any(k in question.lower() for k in ["sequence", "sequnce"]) and not any(k in question.lower() for k in ["structure", "diagram", "image"]):
+    if any(k in question.lower() for k in ["sequence", "sequnce"]) and not any(k in question.lower() for k in ["structure", "diagram", "image", "strcture"]):
         wants_visual = False
-    if not wants_visual:
+    
+    # If the question explicitly contains a PDB ID or UniProt ID, always preserve the image
+    # so the user can visualize it along with the metadata.
+    has_specific_proteins = bool(pdb_ids or uniprot_ids)
+    if not wants_visual and not has_specific_proteins:
         image_urls = []
 
     # 7. Provenance Determination
